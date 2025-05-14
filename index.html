@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Canvas to AR (Touch Drawing + Interactions)</title>
+  <title>Canvas to AR (Touch Drawing)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -51,7 +51,7 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
     import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/webxr/ARButton.js';
 
-    // Canvas Drawing
+    // Drawing canvas
     const canvas = document.getElementById('drawCanvas');
     const ctx = canvas.getContext('2d');
     const brushSize = document.getElementById('brushSize');
@@ -67,13 +67,11 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        e.preventDefault();
-        drawing = true;
-        const pos = getTouchPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
+      e.preventDefault();
+      drawing = true;
+      const pos = getTouchPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
     });
 
     canvas.addEventListener('touchmove', (e) => {
@@ -97,7 +95,7 @@
       texture.needsUpdate = true;
     }
 
-    // THREE + WebXR AR Setup
+    // THREE + WebXR AR
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera();
 
@@ -106,6 +104,7 @@
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.xr.enabled = true;
     document.body.appendChild(renderer.domElement);
+
     document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -115,60 +114,7 @@
     plane.position.set(0, 0, -0.5);
     scene.add(plane);
 
-    // WebXR Controllers for AR Interaction
-    const controller1 = renderer.xr.getController(0);
-    const controller2 = renderer.xr.getController(1);
-    scene.add(controller1);
-    scene.add(controller2);
-
-    // Drag with select
-    let dragging = false;
-    let lastControllerPos = new THREE.Vector3();
-
-    controller1.addEventListener('selectstart', () => {
-      dragging = true;
-      lastControllerPos.copy(controller1.position);
-    });
-
-    controller1.addEventListener('selectend', () => {
-      dragging = false;
-    });
-
-    // Pinch to Zoom with squeeze
-    let initialScale = plane.scale.clone();
-    let lastDistance = null;
-
-    controller1.addEventListener('squeezestart', () => {
-      initialScale = plane.scale.clone();
-      lastDistance = getDistanceBetweenControllers();
-    });
-
-    controller1.addEventListener('squeeze', () => {
-      const dist = getDistanceBetweenControllers();
-      if (lastDistance) {
-        const scaleFactor = dist / lastDistance;
-        plane.scale.set(
-          initialScale.x * scaleFactor,
-          initialScale.y * scaleFactor,
-          initialScale.z * scaleFactor
-        );
-      }
-    });
-
-    controller1.addEventListener('squeezeend', () => {
-      lastDistance = null;
-    });
-
-    function getDistanceBetweenControllers() {
-      return controller1.position.distanceTo(controller2.position);
-    }
-
     renderer.setAnimationLoop(() => {
-      if (dragging) {
-        const delta = new THREE.Vector3().subVectors(controller1.position, lastControllerPos);
-        plane.position.add(delta);
-        lastControllerPos.copy(controller1.position);
-      }
       renderer.render(scene, camera);
     });
   </script>
