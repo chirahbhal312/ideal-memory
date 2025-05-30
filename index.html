@@ -11,14 +11,15 @@
       font-family: sans-serif;
     }
     #drawCanvas {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      border: 2px solid #000;
-      background: white;
-      touch-action: none;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  touch-action: none;
+}
+
     .controls {
       position: fixed;
       top: 420px;
@@ -57,6 +58,9 @@
     const brushSize = document.getElementById('brushSize');
     const brushColor = document.getElementById('brushColor');
     let drawing = false;
+
+    canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
     function getTouchPos(e) {
       const rect = canvas.getBoundingClientRect();
@@ -105,7 +109,11 @@
     renderer.xr.enabled = true;
     document.body.appendChild(renderer.domElement);
 
-    document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
+    document.body.appendChild(ARButton.createButton(renderer, {
+  requiredFeatures: ['hit-test', 'dom-overlay'],
+  domOverlay: { root: document.body }
+}));
+
 
     const texture = new THREE.CanvasTexture(canvas);
     const geometry = new THREE.PlaneGeometry(0.3, 0.3);
